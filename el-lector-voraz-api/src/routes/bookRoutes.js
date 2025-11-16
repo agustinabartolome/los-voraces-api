@@ -9,14 +9,14 @@ router.get(
   "/",
   authMiddleware,
   roleMiddleware("admin", "empleado_libreria"),
-  getLibros
+  getBook
 );
 
 router.post(
   "/",
   authMiddleware,
   roleMiddleware("admin", "empleado_libreria"),
-  createLibro
+  createBook
 );
 
 export default router;
