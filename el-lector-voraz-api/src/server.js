@@ -3,7 +3,9 @@ import cors from "cors";
 import dotenv from "dotenv";
 
 import authRoutes from "./routes/authRoutes.js";
-import productRoutes from "./routes/productRoutes.js";
+import bookRoutes from "./routes/bookRoutes.js";
+import magazineRoutes from "./routes/magazineRoutes.js";
+import schoolItemRoutes from "./routes/schoolItemRoutes.js";
 
 dotenv.config();
 
@@ -16,7 +18,10 @@ app.use(express.json());
 
 
 app.use("/auth", authRoutes);
-app.use("/products", productRoutes);
+app.use("/libros", bookRoutes);
+app.use("/revistas", magazineRoutes);
+app.use("/articulos", schoolItemRoutes);
+
 
 
 const PORT = process.env.PORT || 3000;
