@@ -1,62 +1,64 @@
 import { Router } from "express";
 import {
-  getLibros,
-  createLibro,
-  getRevistas,
-  createRevista,
-  getArticulos,
-  createArticulo
-} from "../controller/productController.js";
+  getMagazines,
+  createMagazine,
+  getMagazineByFilter,
+  updateMagazine,
+  deleteMagazine,
+  updateMagazineStock
+} from "../controller/magazineController.js";
 
 import authMiddleware from "../middleware/authMiddleware.js";
 import roleMiddleware from "../middleware/roleMiddleware.js";
 
 const router = Router();
 
-// =================== LIBROS ===================
+
 router.get(
-  "/libros",
+  "/",
   authMiddleware,
   roleMiddleware("admin", "empleado_libreria"),
-  getLibros
+  getMagazines
 );
+
+
+router.get(
+  "/buscar",
+  authMiddleware,
+  roleMiddleware("admin", "empleado_libreria"),
+  getMagazineByFilter
+);
+
 
 router.post(
-  "/libros",
+  "/",
   authMiddleware,
   roleMiddleware("admin", "empleado_libreria"),
-  createLibro
+  createMagazine
 );
 
-// =================== REVISTAS ===================
-router.get(
-  "/revistas",
+
+router.put(
+  "/:id",
   authMiddleware,
   roleMiddleware("admin", "empleado_libreria"),
-  getRevistas
+  updateMagazine
 );
 
-router.post(
-  "/revistas",
+
+router.delete(
+  "/:id",
   authMiddleware,
-  roleMiddleware("admin", "empleado_libreria"),
-  createRevista
+  roleMiddleware("admin"),
+  deleteMagazine
 );
 
-// =================== ARTÍCULOS ===================
-router.get(
-  "/articulos",
-  authMiddleware,
-  roleMiddleware("admin", "empleado_libreria"),
-  getArticulos
-);
 
-router.post(
-  "/articulos",
+router.patch(
+  "/stock/:id",
   authMiddleware,
   roleMiddleware("admin", "empleado_libreria"),
-  createArticulo
+  updateMagazineStock
 );
 
 export default router;
-
