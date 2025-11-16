@@ -1,8 +1,11 @@
 import { Router } from "express";
+import { registrar, login } from "../controller/authController.js";
+import authMiddleware from "../middleware/authMiddleware.js";
+
 const router = Router();
 
-router.get("/", (req, res) => {
-  res.json({ message: "Auth funcionando" });
-});
+router.post("/register", registrar);
+router.post("/login", login);
+router.get("/perfil", authMiddleware, perfil);
 
 export default router;
