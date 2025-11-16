@@ -16,7 +16,7 @@ Crear archivo .env con lo siguiente:
 DB_USER=usuario
 DB_PASS=contraseña
 DB_HOST=localhost
-DB_NAME=nombre de la base de datos
+DB_NAME=nombre de la tabla base de datos
 DB_PORT=5432
 JWT_SECRET=
 
