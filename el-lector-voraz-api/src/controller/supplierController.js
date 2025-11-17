@@ -2,7 +2,22 @@ import { pool } from "../config/db.js";
 
 export const getSuppliers = async (req, res) => {
   try {
-    const result = await pool.query("SELECT * FROM proveedores ORDER BY id ASC");
+    let query = "SELECT * FROM proveedores WHERE 1=1";
+    const params = [];
+
+    if (req.query.nombre) {
+      params.push(`%${req.query.nombre}%`);
+      query += ` AND nombre ILIKE $${params.length}`;
+    }
+
+    if (req.query.categoria) {
+      params.push(req.query.categoria);
+      query += ` AND categoria=$${params.length}`;
+    }
+
+    query += " ORDER BY id ASC";
+
+    const result = await pool.query(query, params);
     res.json(result.rows);
   } catch (error) {
     console.error("getSuppliers error:", error);
@@ -10,15 +25,16 @@ export const getSuppliers = async (req, res) => {
   }
 };
 
+
 export const createSupplier = async (req, res) => {
   try {
-    const { nombre, telefono, email, direccion } = req.body;
+    const { nombre, telefono, email, direccion, categoria } = req.body;
 
     const result = await pool.query(
-      `INSERT INTO proveedores (nombre, telefono, email, direccion)
-       VALUES ($1,$2,$3,$4)
+      `INSERT INTO proveedores (nombre, telefono, email, direccion, categoria)
+       VALUES ($1,$2,$3,$4,$5)
        RETURNING *`,
-      [nombre, telefono, email, direccion]
+      [nombre, telefono, email, direccion, categoria]
     );
 
     res.status(201).json(result.rows[0]);
@@ -28,18 +44,18 @@ export const createSupplier = async (req, res) => {
   }
 };
 
+
 export const updateSupplier = async (req, res) => {
   const { id } = req.params;
-
   try {
-    const { nombre, telefono, email, direccion } = req.body;
+    const { nombre, telefono, email, direccion, categoria } = req.body;
 
     const result = await pool.query(
       `UPDATE proveedores 
-       SET nombre=$1, telefono=$2, email=$3, direccion=$4
-       WHERE id=$5
+       SET nombre=$1, telefono=$2, email=$3, direccion=$4, categoria=$5
+       WHERE id=$6
        RETURNING *`,
-      [nombre, telefono, email, direccion, id]
+      [nombre, telefono, email, direccion, categoria, id]
     );
 
     if (result.rows.length === 0)
@@ -52,9 +68,9 @@ export const updateSupplier = async (req, res) => {
   }
 };
 
+
 export const deleteSupplier = async (req, res) => {
   const { id } = req.params;
-
   try {
     const result = await pool.query(
       "DELETE FROM proveedores WHERE id=$1 RETURNING *",
