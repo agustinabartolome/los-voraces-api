@@ -1,50 +1,43 @@
 import { Router } from "express";
 import {
-  getItems,
-  createItem,
-  updateItem,
-  deleteItem,
-  updateItemStock
-} from "../controller/schoolItemController.js";
+  getSales,
+  createSale,
+  updateSale,
+  deleteSale
+} from "../controller/saleController.js";
 
 import authMiddleware from "../middleware/authMiddleware.js";
 import roleMiddleware from "../middleware/roleMiddleware.js";
 
 const router = Router();
 
+
 router.get(
   "/",
   authMiddleware,
   roleMiddleware("admin", "empleado_libreria"),
-  getItems
+  getSales
 );
 
 router.post(
   "/",
   authMiddleware,
   roleMiddleware("admin", "empleado_libreria"),
-  createItem
+  createSale
 );
 
 router.put(
   "/:id",
   authMiddleware,
   roleMiddleware("admin", "empleado_libreria"),
-  updateItem
+  updateSale
 );
 
 router.delete(
   "/:id",
   authMiddleware,
-  roleMiddleware("admin", "empleado_libreria"),
-  deleteItem
-);
-
-router.patch(
-  "/stock/:id",
-  authMiddleware,
-  roleMiddleware("admin", "empleado_libreria"),
-  updateItemStock
+  roleMiddleware("admin"),
+  deleteSale
 );
 
 export default router;
