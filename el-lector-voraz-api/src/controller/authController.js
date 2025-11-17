@@ -30,6 +30,16 @@ export const registrar = async (req, res) => {
   }
 };
 
+export const perfil = async (req, res) => {
+  try {
+    
+    res.json({ usuario: req.user });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error al obtener perfil" });
+  }
+};
+
 
 export const login = async (req, res) => {
   const { username, password } = req.body;
