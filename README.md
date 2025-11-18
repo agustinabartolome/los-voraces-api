@@ -8,11 +8,17 @@ npm init -y
 En la terminal ejecutar los siguientes comandos: 
 
 npm install express 
+
 npm install pg 
+
 npm install bcryptjs
+
 npm install jsonwebtoken
+
 npm install cors
+
 npm install dotenv
+
 npm install nodemon --save-dev
 
 # .env
@@ -20,10 +26,15 @@ npm install nodemon --save-dev
 Crear archivo .env, en la raiz del proyecto con lo siguiente:
 
 DB_USER=usuario
+
 DB_PASS=contraseña
+
 DB_HOST=localhost
+
 DB_NAME=nombre de la tabla base de datos
+
 DB_PORT=5432
+
 JWT_SECRET=
 
 # Configurar la base de datos con PostgreSQL
@@ -31,7 +42,9 @@ JWT_SECRET=
 # Crear la base de datos
 
 CREATE DATABASE nombre_de_la_base_de_datos
+
 WITH OWNER = postgres
+
 ENCODING = 'UTF8';
 
 # Ejecutar los Scripts 
