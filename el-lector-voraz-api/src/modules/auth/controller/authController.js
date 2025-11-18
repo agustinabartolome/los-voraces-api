@@ -1,6 +1,6 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { pool } from "../config/db.js";
+import { pool } from "../../../config/db.js";
 
 export const registrar = async (req, res) => {
   const { username, password, rol } = req.body;

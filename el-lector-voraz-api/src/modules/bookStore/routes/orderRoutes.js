@@ -1,13 +1,13 @@
 import { Router } from "express";
 import {
-  getSuppliers,
-  createSupplier,
-  updateSupplier,
-  deleteSupplier
-} from "../controller/supplierController.js";
+  getOrders,
+  createOrder,
+  updateOrder,
+  deleteOrder
+} from "../controller/orderController.js";
 
-import authMiddleware from "../middleware/authMiddleware.js";
-import roleMiddleware from "../middleware/roleMiddleware.js";
+import authMiddleware from "../../../middleware/authMiddleware.js";
+import roleMiddleware from "../../../middleware/roleMiddleware.js";
 
 const router = Router();
 
@@ -16,28 +16,28 @@ router.get(
   "/",
   authMiddleware,
   roleMiddleware("admin", "empleado_libreria"),
-  getSuppliers
+  getOrders
 );
 
 router.post(
   "/",
   authMiddleware,
   roleMiddleware("admin", "empleado_libreria"),
-  createSupplier
+  createOrder
 );
 
 router.put(
   "/:id",
   authMiddleware,
   roleMiddleware("admin", "empleado_libreria"),
-  updateSupplier
+  updateOrder
 );
 
 router.delete(
   "/:id",
   authMiddleware,
   roleMiddleware("admin"),
-  deleteSupplier
+  deleteOrder
 );
 
 export default router;

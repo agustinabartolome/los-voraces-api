@@ -1,64 +1,50 @@
 import { Router } from "express";
 import {
-  getBooks,
-  createBook,
-  getBooksByFilter,
-  updateBook,
-  deleteBook,
-  updateBookStock
-} from "../controller/bookController.js";
+  getItems,
+  createItem,
+  updateItem,
+  deleteItem,
+  updateItemStock
+} from "../controller/schoolItemController.js";
 
-import authMiddleware from "../middleware/authMiddleware.js";
-import roleMiddleware from "../middleware/roleMiddleware.js";
+import authMiddleware from "../../../middleware/authMiddleware.js";
+import roleMiddleware from "../../../middleware/roleMiddleware.js";
 
 const router = Router();
-
 
 router.get(
   "/",
   authMiddleware,
   roleMiddleware("admin", "empleado_libreria"),
-  getBooks
+  getItems
 );
-
-
-router.get(
-  "/buscar",
-  authMiddleware,
-  roleMiddleware("admin", "empleado_libreria"),
-  getBooksByFilter
-);
-
 
 router.post(
   "/",
   authMiddleware,
   roleMiddleware("admin", "empleado_libreria"),
-  createBook
+  createItem
 );
-
 
 router.put(
   "/:id",
   authMiddleware,
   roleMiddleware("admin", "empleado_libreria"),
-  updateBook
+  updateItem
 );
-
 
 router.delete(
   "/:id",
   authMiddleware,
-  roleMiddleware("admin"),
-  deleteBook
+  roleMiddleware("admin", "empleado_libreria"),
+  deleteItem
 );
-
 
 router.patch(
   "/stock/:id",
   authMiddleware,
   roleMiddleware("admin", "empleado_libreria"),
-  updateBookStock
+  updateItemStock
 );
 
 export default router;

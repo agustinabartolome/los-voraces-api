@@ -6,8 +6,8 @@ import {
   deleteSale
 } from "../controller/saleController.js";
 
-import authMiddleware from "../middleware/authMiddleware.js";
-import roleMiddleware from "../middleware/roleMiddleware.js";
+import authMiddleware from "../../../middleware/authMiddleware.js";
+import roleMiddleware from "../../../middleware/roleMiddleware.js";
 
 const router = Router();
 
