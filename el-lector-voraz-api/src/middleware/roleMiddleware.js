@@ -1,3 +1,4 @@
+export default permitirRoles
 export function permitirRoles(...rolesPermitidos) {
   return (req, res, next) => {
     if (!rolesPermitidos.includes(req.user.rol)) {

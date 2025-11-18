@@ -1,8 +1,9 @@
 {
   "name": "los-voraces-api",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
+    "start": "nodemon el-lector-voraz-api/src/server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -16,7 +17,7 @@
     "url": "https://github.com/agustinabartolome/los-voraces-api/issues"
   },
   "homepage": "https://github.com/agustinabartolome/los-voraces-api#readme",
-  "description": "",
+  "description": "Inicializar el proyecto\r En la terminar ejecutar el comando \r npm init -y",
   "dependencies": {
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.5",
@@ -27,5 +28,6 @@
   },
   "devDependencies": {
     "nodemon": "^3.1.11"
-  }
+  },
+  "type": "module"
 }
