@@ -6,6 +6,7 @@ import authRoutes from "./modules/auth/routes/authRoutes.js";
 import bookRoutes from "./modules/bookStore/routes/bookRoutes.js";
 import magazineRoutes from "./modules/bookStore/routes/magazineRoutes.js";
 import schoolItemRoutes from "./modules/bookStore/routes/schoolItemRoutes.js";
+import roleRoutes from "./modules/roles/routes/roleRoutes.js"
 
 dotenv.config();
 
@@ -21,6 +22,7 @@ app.use("/auth", authRoutes);
 app.use("/libros", bookRoutes);
 app.use("/revistas", magazineRoutes);
 app.use("/articulos", schoolItemRoutes);
+app.use("/roles", roleRoutes);
 
 
 
