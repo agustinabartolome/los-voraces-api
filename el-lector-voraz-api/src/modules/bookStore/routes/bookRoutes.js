@@ -6,7 +6,7 @@ import {
   updateBook,
   deleteBook,
   updateBookStock
-} from "../controllers/bookController.js";
+} from "../controller/bookController.js";
 
 import authMiddleware from "../../../middleware/authMiddleware.js";
 import roleMiddleware from "../../../middleware/roleMiddleware.js";

@@ -10,6 +10,10 @@
 
 3. Completar las credenciales en .env
 
+4. Iniciar el servidor:
+
+        npm start
+
 ## Configurar la base de datos con PostgreSQL:
 
 Ejecutar los scripts que se encuentran dentro de /sql con postgres:

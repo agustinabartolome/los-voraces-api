@@ -2,10 +2,10 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 
-import authRoutes from "./routes/authRoutes.js";
-import bookRoutes from "./routes/bookRoutes.js";
-import magazineRoutes from "./routes/magazineRoutes.js";
-import schoolItemRoutes from "./routes/schoolItemRoutes.js";
+import authRoutes from "./modules/auth/routes/authRoutes.js";
+import bookRoutes from "./modules/bookStore/routes/bookRoutes.js";
+import magazineRoutes from "./modules/bookStore/routes/magazineRoutes.js";
+import schoolItemRoutes from "./modules/bookStore/routes/schoolItemRoutes.js";
 
 dotenv.config();
 
