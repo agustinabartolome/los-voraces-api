@@ -12,7 +12,7 @@ export const registrar = async (req, res) => {
     );
 
     if (existe.rows.length > 0) {
-      return res.status(400).json({ error: "El usuario ya existe" });
+      return res.status(409).json({ error: "El usuario ya existe" });
     }
 
     const hashed = await bcrypt.hash(password, 10);
@@ -22,7 +22,7 @@ export const registrar = async (req, res) => {
       [username, hashed, rol]
     );
 
-    res.json({ message: "Usuario registrado", userId: nuevo.rows[0].id });
+    res.status(201).json({ message: "Usuario registrado", userId: nuevo.rows[0].id });
 
   } catch (error) {
     console.error(error);
