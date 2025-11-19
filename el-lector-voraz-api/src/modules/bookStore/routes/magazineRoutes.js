@@ -23,20 +23,19 @@ router.get(
 );
 
 router.get(
-  "/:id",
-  authMiddleware,
-  roleMiddleware("admin", "empleado_libreria"),
-  getMagazineById
-)
-
-
-router.get(
   "/buscar",
   authMiddleware,
   roleMiddleware("admin", "empleado_libreria"),
   getMagazineByFilter
 );
 
+
+router.get(
+  "/:id",
+  authMiddleware,
+  roleMiddleware("admin", "empleado_libreria"),
+  getMagazineById
+)
 
 router.post(
   "/",

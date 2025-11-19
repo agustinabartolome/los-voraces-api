@@ -1,73 +1,88 @@
-import { pool } from "../../../config/db.js"; 
-
+import pool from "../../../config/db.js";
+import {
+    getAllMagazinesQuery,
+    createMagazineQuery,
+    updateMagazineQuery,
+    deleteMagazineQuery
+} from "../queries/magazineQueries.js";
 
 export const getMagazines = async (req, res) => {
   try {
-    const result = await pool.query(`
-      SELECT id, nombre, categoria, precio, proveedor_id, stock, issn, edicion, numero
-      FROM revistas
-      ORDER BY id ASC
-    `);
 
-    res.json(result.rows);
-  } catch (error) {
-    console.error("getMagazines error:", error);
+    const page = parseInt(req.query.page) || 1;
+    const limit = 10; 
+    const offset = (page - 1) * limit;
+
+    const magazinesResult = await pool.query(
+      `${getAllMagazinesQuery} LIMIT $1 OFFSET $2`,
+      [limit, offset]
+    );
+
+    const countResult = await pool.query(`SELECT COUNT(*) FROM revistas`);
+    const total = parseInt(countResult.rows[0].count);
+    const totalPages = Math.ceil(total / limit);
+
+    res.json({
+      page,
+      limit,
+      total,
+      totalPages,
+      data: magazinesResult.rows
+    });
+
+  } catch (err) {
+    console.error("getMagazines error:", err);
     res.status(500).json({ error: "Error interno del servidor" });
   }
 };
 
-export const getMagazineById = async (req, res) => {
-  const { id } = req.params;
-  
-  try {
-    const result = await pool.query(`
-      SELECT *
-      FROM revistas
-      WHERE id = $1
-      `, [id]);
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: "Revista no encontrada" });
-    }
-
-    res.json(result.rows[0]);
-
-  } catch (err) {
-    console.error("getMagazineById error:", err);
-    res.status(500).json({
-      error: "Error interno del servidor"
-    });
-  }
-};
-
-
-export const getMagazineByFilter = async (req, res) => {
-  const { nombre, issn, numero } = req.query;
+export const getMagazinesByFilter = async (req, res) => {
+  const { titulo, editorial, proveedor_id, precioMin, precioMax } = req.query;
 
   let query = "SELECT * FROM revistas WHERE 1=1";
   const params = [];
   let index = 1;
 
-  if (nombre) {
-    query += ` AND nombre ILIKE $${index++}`;
-    params.push(`%${nombre}%`);
+  if (titulo) {
+    query += ` AND titulo ILIKE $${index++}`;
+    params.push(`%${titulo}%`);
   }
 
-  if (issn) {
-    query += ` AND issn = $${index++}`;
-    params.push(issn);
+  if (editorial) {
+    query += ` AND editorial ILIKE $${index++}`;
+    params.push(`%${editorial}%`);
   }
 
-  if (numero) {
-    query += ` AND numero = $${index++}`;
-    params.push(numero);
+  if (proveedor_id) {
+    if (isNaN(proveedor_id)) {
+      return res.status(400).json({ error: "proveedor_id debe ser numérico" });
+    }
+    query += ` AND proveedor_id = $${index++}`;
+    params.push(proveedor_id);
+  }
+
+  if (precioMin) {
+    if (isNaN(precioMin)) {
+      return res.status(400).json({ error: "precioMin debe ser numérico" });
+    }
+    query += ` AND precio >= $${index++}`;
+    params.push(precioMin);
+  }
+
+  if (precioMax) {
+    if (isNaN(precioMax)) {
+      return res.status(400).json({ error: "precioMax debe ser numérico" });
+    }
+    query += ` AND precio <= $${index++}`;
+    params.push(precioMax);
   }
 
   try {
     const result = await pool.query(query, params);
     res.json(result.rows);
-  } catch (error) {
-    console.error("getMagazineByFilter error:", error);
+
+  } catch (err) {
+    console.error("getMagazinesByFilter error:", err);
     res.status(500).json({ error: "Error interno del servidor" });
   }
 };
@@ -75,82 +90,50 @@ export const getMagazineByFilter = async (req, res) => {
 
 export const createMagazine = async (req, res) => {
   try {
-    const { nombre, categoria, precio, proveedor_id, stock, issn, edicion, numero } = req.body;
+    const { titulo, precio, editorial, stock, proveedor_id } = req.body;
 
-    const result = await pool.query(
-      `INSERT INTO revistas (nombre, categoria, precio, proveedor_id, stock, issn, edicion, numero)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
-       RETURNING *`,
-      [nombre, categoria, precio, proveedor_id, stock, issn, edicion, numero]
-    );
+    const result = await pool.query(createMagazineQuery, [
+      titulo, precio, editorial, stock, proveedor_id
+    ]);
 
     res.status(201).json(result.rows[0]);
-  } catch (error) {
-    console.error("createMagazine error:", error);
+  } catch (err) {
+    console.error("createMagazine error:", err);
     res.status(500).json({ error: "Error interno del servidor" });
   }
 };
 
 export const updateMagazine = async (req, res) => {
-  const { id } = req.params;
-
   try {
-    const { nombre, categoria, precio, proveedor_id, stock, issn, edicion, numero } = req.body;
+    const { id } = req.params;
+    const { titulo, precio, editorial, stock, proveedor_id } = req.body;
 
-    const result = await pool.query(
-      `UPDATE revistas 
-       SET nombre=$1, categoria=$2, precio=$3, proveedor_id=$4, stock=$5, issn=$6, edicion=$7, numero=$8
-       WHERE id=$9
-       RETURNING *`,
-      [nombre, categoria, precio, proveedor_id, stock, issn, edicion, numero, id]
-    );
+    const result = await pool.query(updateMagazineQuery, [
+      titulo, precio, editorial, stock, proveedor_id, id
+    ]);
 
     if (result.rows.length === 0)
       return res.status(404).json({ error: "Revista no encontrada" });
 
     res.json(result.rows[0]);
-  } catch (error) {
-    console.error("updateMagazine error:", error);
+  } catch (err) {
+    console.error("updateMagazine error:", err);
     res.status(500).json({ error: "Error interno del servidor" });
   }
 };
 
-
 export const deleteMagazine = async (req, res) => {
-  const { id } = req.params;
-
   try {
-    const result = await pool.query(
-      "DELETE FROM revistas WHERE id=$1 RETURNING *",
-      [id]
-    );
+    const { id } = req.params;
+
+    const result = await pool.query(deleteMagazineQuery, [id]);
 
     if (result.rows.length === 0)
       return res.status(404).json({ error: "Revista no encontrada" });
 
     res.json({ message: "Revista eliminada" });
-  } catch (error) {
-    console.error("deleteMagazine error:", error);
-    res.status(500).json({ error: "Error interno del servidor" });
-  }
-};
-
-export const updateMagazineStock = async (req, res) => {
-  const { id } = req.params;
-  const { quantity } = req.body;
-
-  try {
-    const result = await pool.query(
-      "UPDATE revistas SET stock = stock + $1 WHERE id=$2 RETURNING *",
-      [quantity, id]
-    );
-
-    if (result.rows.length === 0)
-      return res.status(404).json({ error: "Revista no encontrada" });
-
-    res.json(result.rows[0]);
-  } catch (error) {
-    console.error("updateMagazineStock error:", error);
+  } catch (err) {
+    console.error("deleteMagazine error:", err);
     res.status(500).json({ error: "Error interno del servidor" });
   }
 };
