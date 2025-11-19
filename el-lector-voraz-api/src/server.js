@@ -8,6 +8,9 @@ import magazineRoutes from "./modules/bookStore/routes/magazineRoutes.js";
 import schoolItemRoutes from "./modules/bookStore/routes/schoolItemRoutes.js";
 import roleRoutes from "./modules/roles/routes/roleRoutes.js"
 
+import productCafeRoutes from "./modules/cafe/routes/productCafeRoutes.js";
+import supplierCafeRoutes from "./modules/cafe/routes/supplierCafeRoutes.js";
+
 dotenv.config();
 
 import "./config/db.js"; 
@@ -24,7 +27,8 @@ app.use("/revistas", magazineRoutes);
 app.use("/articulos", schoolItemRoutes);
 app.use("/roles", roleRoutes);
 
-
+app.use("/cafeteria/productos", productCafeRoutes);
+app.use("/cafeteria/proveedores", supplierCafeRoutes);
 
 const PORT = process.env.PORT || 3000;
 
