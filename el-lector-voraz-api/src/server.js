@@ -7,6 +7,7 @@ import bookRoutes from "./modules/bookStore/routes/bookRoutes.js";
 import magazineRoutes from "./modules/bookStore/routes/magazineRoutes.js";
 import schoolItemRoutes from "./modules/bookStore/routes/schoolItemRoutes.js";
 import roleRoutes from "./modules/roles/routes/roleRoutes.js"
+import orderRoutes from "./modules/bookStore/routes/orderRoutes.js"
 
 import productCafeRoutes from "./modules/cafe/routes/productCafeRoutes.js";
 import supplierCafeRoutes from "./modules/cafe/routes/supplierCafeRoutes.js";
@@ -26,6 +27,7 @@ app.use("/libros", bookRoutes);
 app.use("/revistas", magazineRoutes);
 app.use("/articulos", schoolItemRoutes);
 app.use("/roles", roleRoutes);
+app.use("/pedidos", orderRoutes)
 
 app.use("/cafeteria/productos", productCafeRoutes);
 app.use("/cafeteria/proveedores", supplierCafeRoutes);

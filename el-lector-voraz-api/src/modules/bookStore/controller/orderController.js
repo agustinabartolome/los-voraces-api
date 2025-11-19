@@ -35,6 +35,90 @@ export const getOrders = async (req, res) => {
   }
 };
 
+export const getOrdersAndSupplier = async (req, res) => {
+  let query = `
+      SELECT 
+        oc.*, 
+        p.nombre AS nombre_proveedor 
+      FROM ordenes_compra oc
+      LEFT JOIN proveedores p ON oc.proveedor_id = p.id
+      ORDER BY oc.fecha DESC
+    `
+  try {
+    const result = await pool.query(query);
+    res.json(result.rows)
+  } catch (err) {
+    console.error("getOrders error: ", err);
+    res.status(500).json({error: "Error interno del servidor"})
+  }
+}
+
+export const getOrderAndSupplierById = async (req, res) => {
+  const { id } = req.params;
+  const query = `
+  SELECT
+    oc.*,
+    p.nombre AS nombre_proveedor
+  FROM ordenes_compra oc
+  LEFT JOIN proveedores p ON oc.proveedor_id = p.id
+  WHERE oc.id = $1
+`
+  try {
+    const result = await pool.query(query, [id]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({error: "Pedido no encontrado"});
+    }
+    res.json(result.rows[0])
+
+  } catch (err) {
+    console.error("getOrderById error: ", err);
+    res.status(500).json({
+      error: "Error interno del servidor"
+    })
+  }
+
+}
+
+export const getOrderDetailsById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const query = `      SELECT 
+        d.id, 
+        d.orden_id, -- Corregido de id_pedido a orden_id para coincidir con tu tabla
+        d.cantidad, 
+        d.precio_unitario, -- Corregido a precio_unitario
+        d.tipo_producto,
+        d.producto_id,
+        CASE
+          WHEN d.tipo_producto = 'libro' THEN l.titulo
+          WHEN d.tipo_producto = 'revista' THEN r.nombre
+          WHEN d.tipo_producto = 'articulo_escolar' THEN ae.nombre
+          ELSE 'Producto Desconocido'
+        END as nombre_producto -- Creamos un nuevo campo 'nombre_producto'
+      FROM detalle_ordenes d
+      LEFT JOIN libros l ON d.producto_id = l.id AND d.tipo_producto = 'libro'
+      LEFT JOIN revistas r ON d.producto_id = r.id AND d.tipo_producto = 'revista'
+      LEFT JOIN articulos_escolares ae ON d.producto_id = ae.id AND d.tipo_producto = 'articulo_escolar'
+      WHERE d.orden_id = $1
+    `;
+
+    const result = await pool.query(query, [id]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "Detalles de orden no encontrados" });
+    }
+
+    res.json(result.rows);
+
+  } catch (err) {
+    console.error("getOrderDetailsById error:", err);
+  res.status(500).json({
+      error: "Error interno del servidor"
+    });
+  }
+};
+
 
 export const createOrder = async (req, res) => {
   const { proveedor_id, estado, detalle } = req.body;

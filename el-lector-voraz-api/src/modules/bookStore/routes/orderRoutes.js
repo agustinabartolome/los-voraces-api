@@ -1,9 +1,12 @@
 import { Router } from "express";
 import {
   getOrders,
+  getOrdersAndSupplier,
   createOrder,
   updateOrder,
-  deleteOrder
+  deleteOrder,
+  getOrderAndSupplierById,
+  getOrderDetailsById
 } from "../controller/orderController.js";
 
 import authMiddleware from "../../../middleware/authMiddleware.js";
@@ -16,8 +19,22 @@ router.get(
   "/",
   authMiddleware,
   roleMiddleware("admin", "empleado_libreria"),
-  getOrders
+  getOrdersAndSupplier
 );
+
+router.get(
+  "/:id",
+  authMiddleware,
+  roleMiddleware("admin", "empleado_libreria"),
+  getOrderAndSupplierById
+)
+
+router.get(
+  "/:id/detalles",
+  authMiddleware,
+  roleMiddleware("admin", "empleado_libreria"),
+  getOrderDetailsById
+)
 
 router.post(
   "/",
