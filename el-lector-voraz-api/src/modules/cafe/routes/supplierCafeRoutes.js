@@ -15,6 +15,6 @@ router.get("/search", searchSupplierCafe);
 router.get("/:id", getSupplierCafeById);
 router.post("/", createSupplierCafe);
 router.delete("/:id", deleteSupplierCafe);
-outer.delete("/:id", updateSupplierCafe);
+router.put("/:id", updateSupplierCafe);
 
 export default router;
