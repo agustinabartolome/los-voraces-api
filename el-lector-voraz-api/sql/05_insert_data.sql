@@ -43,8 +43,8 @@ INSERT INTO detalle_ordenes (orden_id, tipo_producto, producto_id, cantidad, pre
 (3, 'revista', 2, 20, 1500.00, 'Música'),
 
 -- Artículos escolares
-(2, 'articulo', 1, 100, 120.00, 'Papelería'),
-(2, 'articulo', 2, 50, 900.00, 'Cuadernos');
+(2, 'articulo_escolar', 1, 100, 120.00, 'Papelería'),
+(2, 'articulo_escolar', 2, 50, 900.00, 'Cuadernos');
 
 
 -- Ventas
