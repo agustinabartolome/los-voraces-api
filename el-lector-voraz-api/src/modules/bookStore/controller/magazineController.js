@@ -8,6 +8,21 @@ import {
 
 export const getMagazines = async (req, res) => {
   try {
+    const result = await pool.query(`
+      SELECT id, nombre, categoria, precio, proveedor_id, stock, issn, edicion, numero
+      FROM revistas
+      ORDER BY id ASC
+    `);
+
+    res.json(result.rows);
+  } catch (error) {
+    console.error("getMagazines error:", error);
+    res.status(500).json({ error: "Error interno del servidor" });
+  }
+};
+
+export const getMagazinesPages = async (req, res) => {
+  try {
 
     const page = parseInt(req.query.page) || 1;
     const limit = 10; 
