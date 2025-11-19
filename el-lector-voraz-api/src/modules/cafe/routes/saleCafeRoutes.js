@@ -1,14 +1,24 @@
 import { Router } from "express";
 import {
-  getSalesCafe,
-  searchSalesCafe,
-  createSalesCafe
-} from "../controller/salesCafeController.js";
+  getSupplierCafe,
+  getSupplierCafeById,
+  searchSupplierCafe,
+  createSupplierCafe,
+  updateSupplierCafe,
+  deleteSupplierCafe
+} from "../controller/supplierCafeController.js";
 
 const router = Router();
 
-router.get("/", getSalesCafe);
-router.get("/search", searchSalesCafe);
-router.post("/", createSalesCafe);
+router.get("/", getSupplierCafe);
+router.get("/search", searchSupplierCafe);
+router.get("/:id", getSupplierCafeById);
+
+router.post("/", createSupplierCafe);
+
+router.put("/:id", updateSupplierCafe);
+
+router.delete("/:id", deleteSupplierCafe);
 
 export default router;
+
