@@ -4,7 +4,8 @@ import {
   createItem,
   updateItem,
   deleteItem,
-  updateItemStock
+  updateItemStock,
+  getSchoolItemById
 } from "../controller/schoolItemController.js";
 
 import authMiddleware from "../../../middleware/authMiddleware.js";
@@ -18,6 +19,13 @@ router.get(
   roleMiddleware("admin", "empleado_libreria"),
   getItems
 );
+
+router.get(
+  "/:id",
+  authMiddleware,
+  roleMiddleware("admin", "empleado_libreria"),
+  getSchoolItemById
+)
 
 router.post(
   "/",

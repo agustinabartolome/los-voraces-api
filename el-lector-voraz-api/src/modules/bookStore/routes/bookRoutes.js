@@ -5,7 +5,8 @@ import {
   createBook,
   updateBook,
   deleteBook,
-  updateBookStock
+  updateBookStock,
+  getBookById
 } from "../controller/bookController.js";
 
 import authMiddleware from "../../../middleware/authMiddleware.js";
@@ -29,6 +30,12 @@ router.get(
   getBooksByFilter
 );
 
+router.get(
+  "/:id",
+  authMiddleware,
+  roleMiddleware("admin", "empleado_libreria"),
+  getBookById
+)
 
 router.post(
   "/",

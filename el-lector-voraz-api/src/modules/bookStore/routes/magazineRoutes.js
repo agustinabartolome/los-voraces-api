@@ -5,7 +5,8 @@ import {
   getMagazineByFilter,
   updateMagazine,
   deleteMagazine,
-  updateMagazineStock
+  updateMagazineStock,
+  getMagazineById
 } from "../controller/magazineController.js";
 
 import authMiddleware from "../../../middleware/authMiddleware.js";
@@ -20,6 +21,13 @@ router.get(
   roleMiddleware("admin", "empleado_libreria"),
   getMagazines
 );
+
+router.get(
+  "/:id",
+  authMiddleware,
+  roleMiddleware("admin", "empleado_libreria"),
+  getMagazineById
+)
 
 
 router.get(

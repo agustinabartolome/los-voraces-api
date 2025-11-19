@@ -18,6 +18,26 @@ export const getBooks = async (req, res) => {
   }
 };
 
+export const getBookById = async (req, res) => {
+  const { id } = req.params;
+  
+  try {
+    const result = await db.query(getBookByIdQuery, [id]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "Libro no encontrado" });
+    }
+
+    res.json(result.rows[0]);
+
+  } catch (err) {
+    console.error("getBookById error:", err);
+    res.status(500).json({
+      error: "Error interno del servidor"
+    });
+  }
+};
+
 export const getBooksByFilter = async (req, res) => {
   const { titulo, autor, editorial, isbn, genero } = req.query;
 
