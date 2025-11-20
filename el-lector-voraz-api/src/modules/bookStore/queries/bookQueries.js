@@ -1,6 +1,6 @@
 
 export const getAllBooksQuery = `
-  SELECT id, titulo, isbn, precio, autor, editorial, genero, seccion, proveedor_id, stock
+  SELECT *
   FROM libros
   ORDER BY id ASC
 `;

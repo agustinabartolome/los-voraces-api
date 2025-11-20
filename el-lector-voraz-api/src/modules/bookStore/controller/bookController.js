@@ -10,7 +10,59 @@ import {
 
 export const getBooks = async (req, res) => {
   try {
-    const result = await db.query(getAllBooksQuery);
+    const { search, titulo, autor, editorial, isbn, genero } = req.query;
+
+    let query = "SELECT * FROM libros";
+    const conditions= [];
+    const params = [];
+    
+    if (search && search.trim() != '') {
+      conditions.push(`(
+        titulo ILIKE $1 OR
+        autor ILIKE $1 OR
+        editorial  ILIKE $1 OR
+        isbn ILIKE $1 OR
+        genero ILIKE $1 
+        )`)
+
+      params.push(`%${search}%`)
+
+    } else {
+      let paramIndex = 1;
+      if (titulo) {
+        conditions.push(`titulo ILIKE $${paramIndex}`);
+        params.push(`%${titulo}%`)
+        paramIndex++
+      }
+      if (autor) {
+        conditions.push(`autor ILIKE $${paramIndex}`);
+        params.push(`%${autor}%`)
+        paramIndex++
+      }
+      if (editorial) {
+        conditions.push(`editorial ILIKE $${paramIndex}`);
+        params.push(`%${editorial}%`)
+        paramIndex++
+      }
+      if (isbn) {
+        conditions.push(`isbn ILIKE $${paramIndex}`);
+        params.push(`%${isbn}%`)
+        paramIndex++
+      }
+      if (genero) {
+        conditions.push(`genero ILIKE $${paramIndex}`);
+        params.push(`%${genero}%`)
+        paramIndex++
+      }
+    }
+
+    if (conditions.length > 0) {
+      query += ` WHERE ${conditions.join(' AND ')}`
+    }
+
+    query += " ORDER BY titulo ASC";
+
+    const result = await db.query(query, params);
     res.json(result.rows);
   } catch (err) {
     console.error("getBooks error:", err);
@@ -35,43 +87,6 @@ export const getBookById = async (req, res) => {
     res.status(500).json({
       error: "Error interno del servidor"
     });
-  }
-};
-
-export const getBooksByFilter = async (req, res) => {
-  const { titulo, autor, editorial, isbn, genero } = req.query;
-
-  let query = "SELECT * FROM libros WHERE 1=1";
-  const params = [];
-  let index = 1;
-
-  if (titulo) {
-    query += ` AND titulo ILIKE $${index++}`;
-    params.push(`%${titulo}%`);
-  }
-  if (autor) {
-    query += ` AND autor ILIKE $${index++}`;
-    params.push(`%${autor}%`);
-  }
-  if (editorial) {
-    query += ` AND editorial ILIKE $${index++}`;
-    params.push(`%${editorial}%`);
-  }
-  if (isbn) {
-    query += ` AND isbn = $${index++}`;
-    params.push(isbn);
-  }
-  if (genero) {
-    query += ` AND genero ILIKE $${index++}`;
-    params.push(`%${genero}%`);
-  }
-
-  try {
-    const result = await db.query(query, params);
-    res.json(result.rows);
-  } catch (err) {
-    console.error("getBooksByFilter error:", err);
-    res.status(500).json({ error: "Error interno del servidor" });
   }
 };
 

@@ -1,7 +1,6 @@
 import { Router } from "express";
 import {
   getBooks,
-  getBooksByFilter,
   createBook,
   updateBook,
   deleteBook,
@@ -20,14 +19,6 @@ router.get(
   authMiddleware,
   roleMiddleware("admin", "empleado_libreria"),
   getBooks
-);
-
-
-router.get(
-  "/buscar",
-  authMiddleware,
-  roleMiddleware("admin", "empleado_libreria"),
-  getBooksByFilter
 );
 
 router.get(
