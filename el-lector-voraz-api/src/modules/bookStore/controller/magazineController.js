@@ -8,12 +8,47 @@ import {
 
 export const getMagazines = async (req, res) => {
   try {
-    const result = await pool.query(`
-      SELECT id, nombre, categoria, precio, proveedor_id, stock, issn, edicion, numero
-      FROM revistas
-      ORDER BY id ASC
-    `);
+    const { search, nombre, categoria, issn } = req.query;
 
+    let query = "SELECT * FROM revistas"
+    const conditions = [];
+    const params = [];
+
+    if (search && search.trim() != '') {
+      conditions.push(`(
+        nombre ILIKE $1 OR
+        categoria ILIKE $1 OR
+        issn ILIKE $1
+        )`)
+        
+        params.push(`%${search}%`)
+
+    } else {
+      let paramIndex = 1;
+      if (nombre) {
+        conditions.push(`nombre ILIKE $${paramIndex}`);
+        params.push(`%${nombre}%`)
+        paramIndex++
+      }
+      if (categoria) {
+        conditions.push(`categoria ILIKE $${paramIndex}`)
+        params.push(`%${categoria}%`)
+        paramIndex++
+      }
+      if (issn) {
+        conditions.push(`issn ILIKE $${paramIndex}`)
+        params.push(`%${issn}%`)
+        paramIndex++
+      }
+    }
+
+    if (conditions.length > 0) {
+      query += ` WHERE ${conditions.join(' AND ')} `
+    }
+
+    query += " ORDER BY nombre ASC"
+
+    const result = await pool.query(query, params);
     res.json(result.rows);
   } catch (error) {
     console.error("getMagazines error:", error);
