@@ -3,35 +3,53 @@ import { pool } from "../../../config/db.js";
 
 export const getItems = async (req, res) => {
   try {
-    const { codigo, seccion, marca, nombre } = req.query;
+    const { search, codigo, seccion, marca, nombre } = req.query;
 
-    let query = `SELECT * FROM articulos_escolares WHERE 1=1`;
+    let query = `SELECT * FROM articulos_escolares`;
+    const conditions = [];
     const params = [];
 
-    if (codigo) {
-      params.push(`%${codigo}%`);
-      query += ` AND codigo ILIKE $${params.length}`;
+    if (search && search.trim() != ''){
+      conditions.push(`(
+        nombre ILIKE $1 OR
+        marca  ILIKE $1 OR
+        seccion  ILIKE $1 OR
+        codigo ILIKE $1
+        )`)
+
+        params.push(`%${search}%`)
+
+    } else {
+      let paramIndex = 1;
+      if (nombre) {
+        conditions.push(`nombre ILIKE $${paramIndex}`)
+        params.push(`%${nombre}%`)
+        paramIndex++
+      }
+      if (marca) {
+        conditions.push(`marca ILIKE $${paramIndex}`)
+        params.push(`%${marca}%`)
+        paramIndex++
+      }
+      if (seccion) {
+        conditions.push(`seccion ILIKE $${paramIndex}`)
+        params.push(`%${seccion}%`)
+        paramIndex++
+      }
+      if (codigo) {
+        conditions.push(`codigo ILIKE $${paramIndex}`)
+        params.push(`%${codigo}%`)
+        paramIndex++
+      }
     }
 
-    if (seccion) {
-      params.push(`%${seccion}%`);
-      query += ` AND seccion ILIKE $${params.length}`;
-    }
-
-    if (marca) {
-      params.push(`%${marca}%`);
-      query += ` AND marca ILIKE $${params.length}`;
-    }
-
-    if (nombre) {
-      params.push(`%${nombre}%`);
-      query += ` AND nombre ILIKE $${params.length}`;
+    if (conditions.length > 0) {
+      query += ` WHERE ${conditions.join(' AND ')}`
     }
 
     query += ` ORDER BY id ASC`;
 
     const result = await pool.query(query, params);
-
     res.json(result.rows);
   } catch (error) {
     console.error("getItems error:", error);
