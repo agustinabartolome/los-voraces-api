@@ -2,20 +2,39 @@ import { pool } from "../../../config/db.js";
 
 export const getSuppliers = async (req, res) => {
   try {
-    let query = "SELECT * FROM proveedores WHERE 1=1";
+    const { search, nombre, categoria, } = req.query;
+
+    let query = "SELECT * FROM proveedores";
+    const conditions = [];
     const params = [];
 
-    if (req.query.nombre) {
-      params.push(`%${req.query.nombre}%`);
-      query += ` AND nombre ILIKE $${params.length}`;
+    if (search && search.trim() != '') {
+      conditions.push(`(
+        nombre ILIKE $1 OR
+        categoria ILIKE $1
+        )`);
+
+      params.push(`%${search}%`)
+
+    } else {
+      let paramIndex = 1;
+      if (nombre) {
+        conditions.push(`nombre ILIKE $${paramIndex}`)
+        params.push(`%${nombre}%`);
+        paramIndex++
+      }
+      if (categoria) {
+        conditions.push(`categoria ILIKE $${paramIndex}`)
+        params.push(`%${categoria}%`);
+        paramIndex++
+      }
     }
 
-    if (req.query.categoria) {
-      params.push(req.query.categoria);
-      query += ` AND categoria=$${params.length}`;
+    if (conditions.length > 0) {
+      query += ` WHERE ${conditions.length > 0}`
     }
 
-    query += " ORDER BY id ASC";
+    query +=  " ORDER BY nombre ASC";
 
     const result = await pool.query(query, params);
     res.json(result.rows);
