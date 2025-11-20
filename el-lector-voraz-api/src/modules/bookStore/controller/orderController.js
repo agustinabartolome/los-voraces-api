@@ -36,20 +36,84 @@ export const getOrders = async (req, res) => {
 };
 
 export const getOrdersAndSupplier = async (req, res) => {
-  let query = `
+  try {
+    let query = `
       SELECT 
         oc.*, 
         p.nombre AS nombre_proveedor 
       FROM ordenes_compra oc
       LEFT JOIN proveedores p ON oc.proveedor_id = p.id
-      ORDER BY oc.fecha DESC
-    `
-  try {
-    const result = await pool.query(query);
+    `;
+    const { search, estado, nombre_proveedor, tipo_producto, categoria } = req.query;
+
+    const conditions = [];
+    const params = [];
+    let paramIndex = 1;
+
+    if (search && search.trim() != '') {
+      conditions.push(`(oc.estado ILIKE $${paramIndex} OR p.nombre ILIKE $${paramIndex})`);
+      params.push(`%${search}%`)
+      paramIndex++
+
+      conditions.push(`
+        EXISTS (
+          SELECT 1 FROM detalle_ordenes d
+          LEFT JOIN libros l ON d.producto_id = l.id AND d.tipo_producto = 'libro'
+          LEFT JOIN revistas r on d.producto_id = r.id AND d.tipo_producto = 'revista'
+          LEFT JOIN articulos_escolares ae ON d.producto_id = ae.id AND d.tipo_producto = 'articulo_escolar'
+          WHERE d.orden_id = oc.id AND (
+            l.titulo ILIKE $${paramIndex} OR
+            r.nombre ILIKE $${paramIndex} OR
+            ae.nombre ILIKE $${paramIndex}
+          )
+        )`)
+
+        params.push(`%${search}%`)
+        paramIndex++
+
+    } else {
+      if (estado) {
+        conditions.push(`oc.estado ILIKE $${paramIndex}`);
+        params.push(`%${estado}%`)
+        paramIndex++
+      }
+      if (nombre_proveedor) {
+        conditions.push(`p.nombre ILIKE $${paramIndex}`);
+        params.push(`%${nombre_proveedor}%`)
+        paramIndex++
+      }
+      if (tipo_producto) {
+        conditions.push(`
+          EXISTS (SELECT 1 FROM detalle_ordenes d 
+          WHERE d.orden_id = oc.id AND d.tipo_producto ILIKE $${paramIndex};)
+          `);
+        params.push(`%${tipo_producto}%`)
+        paramIndex++
+      }
+      if (categoria) {
+        conditions.push(`
+          EXISTS (SELECT 1 FROM detalle_ordenes d 
+          LEFT JOIN libros l ON d.producto_id = l.id AND l.genero ILIKE $${paramIndex}
+          LEFT JOIN revistas r ON d.producto_id = r.id and r.categoria ILIKE $${paramIndex}
+          LEFT JOIN articulos_escolares ae ON d.producto_id = ae.id AND ae.seccion ILIKE $${paramIndex}
+          WHERE d.orden_id = oc.id)
+          `);
+        params.push(`%${categoria}%`)
+        paramIndex++
+      }
+    }
+
+    if (conditions.length > 0) {
+      const joiner = search ? ' OR ' : ' AND '; query += ` WHERE ${conditions.join(joiner)}`;
+    }
+
+    query += ` ORDER BY oc.fecha DESC`;
+
+    const result = await pool.query(query, params);
     res.json(result.rows)
   } catch (err) {
     console.error("getOrders error: ", err);
-    res.status(500).json({error: "Error interno del servidor"})
+    res.status(500).json({ error: "Error interno del servidor" })
   }
 }
 
@@ -67,7 +131,7 @@ export const getOrderAndSupplierById = async (req, res) => {
     const result = await pool.query(query, [id]);
 
     if (result.rows.length === 0) {
-      return res.status(404).json({error: "Pedido no encontrado"});
+      return res.status(404).json({ error: "Pedido no encontrado" });
     }
     res.json(result.rows[0])
 
@@ -113,7 +177,7 @@ export const getOrderDetailsById = async (req, res) => {
 
   } catch (err) {
     console.error("getOrderDetailsById error:", err);
-  res.status(500).json({
+    res.status(500).json({
       error: "Error interno del servidor"
     });
   }
