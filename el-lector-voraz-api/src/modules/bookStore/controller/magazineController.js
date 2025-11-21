@@ -110,64 +110,12 @@ export const getMagazineById = async (req, res) => {
   }
 };
 
-export const getMagazineByFilter = async (req, res) => {
-  const { titulo, editorial, proveedor_id, precioMin, precioMax } = req.query;
-
-  let query = "SELECT * FROM revistas WHERE 1=1";
-  const params = [];
-  let index = 1;
-
-  if (titulo) {
-    query += ` AND titulo ILIKE $${index++}`;
-    params.push(`%${titulo}%`);
-  }
-
-  if (editorial) {
-    query += ` AND editorial ILIKE $${index++}`;
-    params.push(`%${editorial}%`);
-  }
-
-  if (proveedor_id) {
-    if (isNaN(proveedor_id)) {
-      return res.status(400).json({ error: "proveedor_id debe ser numérico" });
-    }
-    query += ` AND proveedor_id = $${index++}`;
-    params.push(proveedor_id);
-  }
-
-  if (precioMin) {
-    if (isNaN(precioMin)) {
-      return res.status(400).json({ error: "precioMin debe ser numérico" });
-    }
-    query += ` AND precio >= $${index++}`;
-    params.push(precioMin);
-  }
-
-  if (precioMax) {
-    if (isNaN(precioMax)) {
-      return res.status(400).json({ error: "precioMax debe ser numérico" });
-    }
-    query += ` AND precio <= $${index++}`;
-    params.push(precioMax);
-  }
-
-  try {
-    const result = await pool.query(query, params);
-    res.json(result.rows);
-
-  } catch (err) {
-    console.error("getMagazinesByFilter error:", err);
-    res.status(500).json({ error: "Error interno del servidor" });
-  }
-};
-
-
 export const createMagazine = async (req, res) => {
   try {
-    const { titulo, precio, editorial, stock, proveedor_id } = req.body;
+    const { nombre, categoria, precio, proveedor_id, stock, issn, edicion, numero } = req.body;
 
     const result = await pool.query(createMagazineQuery, [
-      titulo, precio, editorial, stock, proveedor_id
+      nombre, categoria, precio, proveedor_id, stock, issn, edicion, numero
     ]);
 
     res.status(201).json(result.rows[0]);

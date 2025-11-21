@@ -2,7 +2,6 @@ import { Router } from "express";
 import {
   getMagazines,
   createMagazine,
-  getMagazineByFilter,
   updateMagazine,
   deleteMagazine,
   updateMagazineStock,
@@ -21,14 +20,6 @@ router.get(
   roleMiddleware("admin", "empleado_libreria"),
   getMagazines
 );
-
-router.get(
-  "/buscar",
-  authMiddleware,
-  roleMiddleware("admin", "empleado_libreria"),
-  getMagazineByFilter
-);
-
 
 router.get(
   "/:id",
