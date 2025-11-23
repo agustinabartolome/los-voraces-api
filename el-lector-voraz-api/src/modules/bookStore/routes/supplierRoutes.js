@@ -3,7 +3,8 @@ import {
   getSuppliers,
   createSupplier,
   updateSupplier,
-  deleteSupplier
+  deleteSupplier,
+  getSupplierById
 } from "../controller/supplierController.js";
 
 import authMiddleware from "../../../middleware/authMiddleware.js";
@@ -18,6 +19,13 @@ router.get(
   roleMiddleware("admin", "empleado_libreria"),
   getSuppliers
 );
+
+router.get(
+  "/:id",
+  authMiddleware,
+  roleMiddleware("admin", "empleado_libreria"),
+  getSupplierById
+)
 
 router.post(
   "/",

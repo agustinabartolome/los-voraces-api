@@ -63,6 +63,30 @@ export const createSupplier = async (req, res) => {
   }
 };
 
+export const getSupplierById = async (req, res) => {
+  const {id } = req.params
+  try {
+    const query = `
+    SELECT * FROM proveedores p WHERE p.id = $1
+    `;
+
+    const result = await pool.query(query, [id]);
+  
+    if (result.rows.length > 0) {
+      res.status(201).json(result.rows[0]);
+    } else {
+      res.status(404).json({error: "Proveedor no encontrado"})
+    }
+
+  } catch (error) {
+    console.error("getSupplierById error: ", error);
+    res.status(500).json({error: "Error interno del servidor"})
+  }
+
+
+
+}
+
 
 export const updateSupplier = async (req, res) => {
   const { id } = req.params;
