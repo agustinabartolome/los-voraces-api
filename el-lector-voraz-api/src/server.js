@@ -9,6 +9,7 @@ import schoolItemRoutes from "./modules/bookStore/routes/schoolItemRoutes.js";
 import roleRoutes from "./modules/roles/routes/roleRoutes.js";
 import orderRoutes from "./modules/bookStore/routes/orderRoutes.js";
 import supplierRoutes from "./modules/bookStore/routes/supplierRoutes.js"
+import saleRoutes from "./modules/bookStore/routes/saleRoutes.js"
 
 import productCafeRoutes from "./modules/cafe/routes/productCafeRoutes.js";
 import supplierCafeRoutes from "./modules/cafe/routes/supplierCafeRoutes.js";
@@ -30,6 +31,7 @@ app.use("/articulos", schoolItemRoutes);
 app.use("/roles", roleRoutes);
 app.use("/pedidos", orderRoutes)
 app.use("/proveedores", supplierRoutes)
+app.use("/ventas", saleRoutes)
 
 app.use("/cafeteria/productos", productCafeRoutes);
 app.use("/cafeteria/proveedores", supplierCafeRoutes);
