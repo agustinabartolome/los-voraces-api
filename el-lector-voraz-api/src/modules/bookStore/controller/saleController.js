@@ -4,29 +4,72 @@ import { pool } from "../../../config/db.js";
 export const getSales = async (req, res) => {
   try {
     let query = `
-      SELECT v.*, dv.tipo_producto, dv.producto_id, dv.cantidad, dv.precio_unitario, dv.subtotal, dv.categoria
-      FROM ventas v
-      LEFT JOIN detalle_ventas dv ON v.id = dv.venta_id
-      WHERE 1=1
+      SELECT v.id, v.usuario_id, v.fecha, v.total FROM ventas v
     `;
+    const { search, fecha, tipo_producto, categoria } = req.query;
+    const conditions = [];
     const params = [];
+    let paramIndex = 1;
+    
+    if (search && search.trim() != '') {
+      conditions.push(`
+        EXISTS (
+        SELECT 1 FROM detalle_ventas dv
+        LEFT JOIN libros l on dv.producto_id = l.id AND dv.tipo_producto = 'libro'
+        LEFT JOIN revistas r ON dv.producto_id = r.id AND dv.tipo_producto = 'revista'
+        LEFT JOIN articulos_escolares ae ON dv.producto_id = ae.id AND dv.tipo_producto = 'articulo_escolar'
+          WHERE dv.venta_id = v.id AND (
+            l.titulo ILIKE $${paramIndex} OR
+            r.nombre ILIKE $${paramIndex} OR
+            ae.nombre ILIKE $${paramIndex}
+          )
+        )`);
 
-    if (req.query.producto_id) {
-      params.push(req.query.producto_id);
-      query += ` AND dv.producto_id=$${params.length}`;
+        params.push(`%${search}%`);
+        paramIndex++;
+
+    } else {
+      if (fecha) {
+        conditions.push(`DATE(v.fecha) = $${paramIndex}`);
+        params.push(fecha);
+        paramIndex++;
+      }
+
+      if (tipo_producto) {
+        conditions.push(`
+          EXISTS (
+            SELECT 1 FROM detalle_ventas dv
+            WHERE dv.venta_id = v.id AND dv.tipo_producto ILIKE $${paramIndex}
+          )
+        `);
+        params.push(`%${tipo_producto}%`);
+        paramIndex++;
+      }
+
+      if (categoria) {
+        conditions.push(`
+            EXISTS (
+              SELECT 1 FROM detalle_ventas dv
+                LEFT JOIN libros l ON dv.producto_id = l.id AND dv.tipo_producto = 'libro'
+                LEFT JOIN revistas r ON dv.producto_id = r.id AND dv.tipo_producto = 'revista'
+                LEFT JOIN articulos_escolares ae ON dv.producto_id = ae.id AND dv.tipo_producto = 'articulo_escolar'
+              WHERE
+                dv.venta_id = v.id AND (
+                    l.genero ILIKE $${paramIndex} OR
+                    r.categoria ILIKE $${paramIndex} OR
+                    ae.seccion ILIKE $${paramIndex}
+                  )
+              )
+        `);
+        params.push(`%${categoria}%`);
+        paramIndex++;
+      }
+    }
+    if (conditions.length > 0) {
+      query += ` WHERE ${conditions.join(' AND ')}`;
     }
 
-    if (req.query.categoria) {
-      params.push(req.query.categoria);
-      query += ` AND dv.categoria=$${params.length}`;
-    }
-
-    if (req.query.fecha) {
-      params.push(req.query.fecha);
-      query += ` AND DATE(v.fecha)=$${params.length}`;
-    }
-
-    query += " ORDER BY v.id ASC";
+    query += " ORDER BY v.fecha DESC";
 
     const result = await pool.query(query, params);
     res.json(result.rows);
@@ -36,6 +79,59 @@ export const getSales = async (req, res) => {
   }
 };
 
+
+export const getSaleById = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const result = await pool.query("SELECT * FROM ventas WHERE id = $1", [id])
+
+    if (result.rows.length == 0) {
+      return res.status(404).json({ error: "Venta no encontrada"})
+    }
+
+    res.json(result.rows[0]);
+
+  } catch (error) {
+    console.error("getSaleById error: ", error)
+    res.status(500).json({ error: "Error interno del servidor"})
+  }
+}
+
+
+export const getSaleDetailsById = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const query = `
+    SELECT 
+      dv.tipo_producto, 
+      dv.producto_id, 
+      dv.cantidad, 
+      dv.precio_unitario, 
+      dv.subtotal,
+        CASE
+          WHEN dv.tipo_producto = 'libro' THEN l.titulo
+          WHEN dv.tipo_producto = 'revista' THEN r.nombre
+          WHEN dv.tipo_producto = 'articulo_escolar' THEN ae.nombre
+          ELSE 'Producto Desconocido'
+        END AS nombre_producto
+      FROM detalle_ventas dv
+      LEFT JOIN libros l ON dv.producto_id = l.id AND dv.tipo_producto = 'libro'
+      LEFT JOIN revistas r ON dv.producto_id = r.id AND dv.tipo_producto = 'revista'
+      LEFT JOIN articulos_escolares ae ON dv.producto_id = ae.id AND dv.tipo_producto = 'articulo_escolar'
+      WHERE dv.venta_id = $1;
+    `;
+
+    const result = await pool.query(query, [id])
+
+    res.json(result.rows);
+
+  } catch (error) {
+    console.error("getSaleDetailsById error: ", error);
+    res.status(500).json({error: "Error interno del servidor"})
+  }
+}
 
 export const createSale = async (req, res) => {
   const { usuario_id, total, detalle } = req.body;

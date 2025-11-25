@@ -1,6 +1,8 @@
 import { Router } from "express";
 import {
   getSales,
+  getSaleById,
+  getSaleDetailsById,
   createSale,
   updateSale,
   deleteSale
@@ -18,6 +20,20 @@ router.get(
   roleMiddleware("admin", "empleado_libreria"),
   getSales
 );
+
+router.get(
+  "/:id",
+  authMiddleware,
+  roleMiddleware("admin", "empelado_libreria"),
+  getSaleById
+)
+
+router.get(
+  "/:id/detalles",
+  authMiddleware,
+  roleMiddleware("admin", "empelado_libreria"),
+  getSaleDetailsById
+)
 
 router.post(
   "/",
