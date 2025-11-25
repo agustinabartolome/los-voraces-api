@@ -93,10 +93,15 @@ export const getOrdersAndSupplier = async (req, res) => {
       if (categoria) {
         conditions.push(`
           EXISTS (SELECT 1 FROM detalle_ordenes d 
-          LEFT JOIN libros l ON d.producto_id = l.id AND l.genero ILIKE $${paramIndex}
-          LEFT JOIN revistas r ON d.producto_id = r.id and r.categoria ILIKE $${paramIndex}
-          LEFT JOIN articulos_escolares ae ON d.producto_id = ae.id AND ae.seccion ILIKE $${paramIndex}
-          WHERE d.orden_id = oc.id)
+           LEFT JOIN libros l ON d.producto_id = l.id AND d.tipo_producto = 'libro'
+            LEFT JOIN revistas r ON d.producto_id = r.id AND d.tipo_producto = 'revista'
+            LEFT JOIN articulos_escolares ae ON d.producto_id = ae.id AND d.tipo_producto = 'articulo_escolar'
+            WHERE d.orden_id = oc.id AND (
+              l.genero ILIKE $${paramIndex} OR
+                r.categoria ILIKE $${paramIndex} OR
+                ae.seccion ILIKE $${paramIndex}
+              )
+            )
           `);
         params.push(`%${categoria}%`)
         paramIndex++
@@ -147,11 +152,12 @@ export const getOrderAndSupplierById = async (req, res) => {
 export const getOrderDetailsById = async (req, res) => {
   try {
     const { id } = req.params;
-    const query = `      SELECT 
+    const query = `
+    SELECT 
         d.id, 
-        d.orden_id, -- Corregido de id_pedido a orden_id para coincidir con tu tabla
+        d.orden_id,
         d.cantidad, 
-        d.precio_unitario, -- Corregido a precio_unitario
+        d.precio_unitario,
         d.tipo_producto,
         d.producto_id,
         CASE
