@@ -128,10 +128,10 @@ export const createMagazine = async (req, res) => {
 export const updateMagazine = async (req, res) => {
   try {
     const { id } = req.params;
-    const { titulo, precio, editorial, stock, proveedor_id } = req.body;
+    const { nombre, categoria, precio, proveedor_id, stock, issn, edicion, numero } = req.body;
 
     const result = await pool.query(updateMagazineQuery, [
-      titulo, precio, editorial, stock, proveedor_id, id
+      nombre, categoria, precio, proveedor_id, stock, issn, edicion, numero, id
     ]);
 
     if (result.rows.length === 0)
