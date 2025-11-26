@@ -136,35 +136,91 @@ export const getSaleDetailsById = async (req, res) => {
 export const createSale = async (req, res) => {
   const { usuario_id, total, detalle } = req.body;
 
-  try {
-    const resultSale = await pool.query(
-      "INSERT INTO ventas (usuario_id, total) VALUES ($1, $2) RETURNING *",
-      [usuario_id, total]
-    );
+  const client = await pool.connect()
 
-    const ventaId = resultSale.rows[0].id;
+  try {
+    await client.query('BEGIN');
 
     for (const item of detalle) {
-      await pool.query(
-        `INSERT INTO detalle_ventas 
-         (venta_id, tipo_producto, producto_id, cantidad, precio_unitario, subtotal, categoria)
-         VALUES ($1,$2,$3,$4,$5,$6,$7)`,
-        [
-          ventaId,
-          item.tipo_producto,
-          item.producto_id,
-          item.cantidad,
-          item.precio_unitario,
-          item.subtotal,
-          item.categoria,
-        ]
-      );
+      const {tipo_producto, producto_id, cantidad } = item
+
+      let tablaProducto = '';
+
+      switch (tipo_producto) {
+        case 'libro':
+          tablaProducto = 'libros';
+          break;
+        
+        case 'revista':
+          tablaProducto = 'revistas';
+          break;
+
+        case 'articulo_escolar':
+          tablaProducto = 'articulos_escolares'
+          break;
+
+        default:
+          throw new Error(`Tipo de producto desconocido: ${tipo_producto}`);
+      }
+
+      const updateStockQuery = `
+        UPDATE ${tablaProducto}
+        SET stock = stock -$1
+        WHERE id = $2 AND stock >= $1
+        RETURNING stock;
+      `
+
+      const stockResult = await client.query(updateStockQuery, [cantidad, producto_id])
+
+      if (stockResult.rowCount == 0) {
+        throw new Error(`Stock insuficiente para el ID producto: ${producto_id} en la tabla ${tablaProducto}`); 
+      }
+
     }
 
-    res.status(201).json({ sale: resultSale.rows[0], detalle });
+    const ventaQuery = `
+      INSERT INTO ventas (usuario_id, total)
+      values ($1, $2)
+      RETURNING id;
+    `
+
+    const ventaResult = await client.query(ventaQuery, [usuario_id, total]);
+
+    const nuevaVentaId = ventaResult.rows[0].id
+
+    for (const item of detalle) {
+      const detalleQuery = `
+        INSERT INTO detalle_ventas (venta_id, tipo_producto, producto_id, cantidad, precio_unitario, subtotal)
+        VALUES ($1, $2, $3, $4, $5, $6)
+      `
+
+      await client.query(detalleQuery, [
+        nuevaVentaId,
+        item.tipo_producto,
+        item.producto_id,
+        item.cantidad,
+        item.precio_unitario,
+        item.subtotal
+      ]);
+    };
+
+    await client.query('COMMIT');
+
+    res.status(201).json({ message: "Venta creada y stock actualizado", ventaId: nuevaVentaId})
+
   } catch (error) {
+    await client.query('ROLLBACK');
+
     console.error("createSale error:", error);
-    res.status(500).json({ error: "Error interno del servidor" });
+
+    if (error.message.includes("Stock insuficiente")) {
+      res.status(409).json({error: error.message});
+    } else {
+      res.status(500).json({ error: "Error interno del servidor" });
+    }
+
+  } finally {
+    client.release();
   }
 };
 
