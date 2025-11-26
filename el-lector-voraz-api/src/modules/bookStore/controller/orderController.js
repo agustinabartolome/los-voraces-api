@@ -219,16 +219,21 @@ export const createOrder = async (req, res) => {
 
 export const updateOrder = async (req, res) => {
   const { id } = req.params;
-  const { proveedor_id, estado } = req.body;
+  const { estado } = req.body;
+
+  if (!estado) {
+    return res.status(400).json({ error: "El campo 'estado' es requerido"})
+  }
 
   try {
     const result = await pool.query(
-      `UPDATE ordenes_compra SET proveedor_id=$1, estado=$2 WHERE id=$3 RETURNING *`,
-      [proveedor_id, estado, id]
+      `UPDATE ordenes_compra SET estado=$1 WHERE id=$2 RETURNING *`,
+      [estado, id]
     );
 
-    if (result.rows.length === 0)
+    if (result.rows.length === 0) {
       return res.status(404).json({ error: "Orden no encontrada" });
+    }
 
     res.json(result.rows[0]);
   } catch (error) {
