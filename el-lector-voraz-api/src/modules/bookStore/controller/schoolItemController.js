@@ -102,17 +102,18 @@ export const createItem = async (req, res) => {
 
 
 export const updateItem = async (req, res) => {
-  const { id } = req.params;
-
   try {
-    const { nombre, marca, precio, proveedor_id, stock, seccion, codigo } = req.body;
+    const { id } = req.params;
+    const { nombre, marca, precio, proveedor_id, seccion, codigo } = req.body;
 
-    const result = await pool.query(
-      `UPDATE articulos_escolares 
-       SET nombre=$1, marca=$2, precio=$3, proveedor_id=$4, stock=$5, seccion=$6, codigo=$7
-       WHERE id=$8
-       RETURNING *`,
-      [nombre, marca, precio, proveedor_id, stock, seccion, codigo, id]
+    const query = `
+      UPDATE articulos_escolares 
+       SET nombre=$1, marca=$2, precio=$3, proveedor_id=$4, seccion=$5, codigo=$6
+       WHERE id=$7
+       RETURNING *
+       `
+
+    const result = await pool.query(query, [nombre, marca, precio, proveedor_id, seccion, codigo, id]
     );
 
     if (result.rows.length === 0)
@@ -148,17 +149,34 @@ export const deleteItem = async (req, res) => {
 
 export const updateItemStock = async (req, res) => {
   const { id } = req.params;
-  const { quantity } = req.body;
+  const { cantidad } = req.body;
+
+  if(typeof cantidad != 'number') {
+    return res.status(400).json({error: "La cantidad debe ser un numero"})
+  }
+
+  let updateQuery = `
+    UPDATE articulos_escolares
+    SET stock = stock + $1
+    WHERE id = $2
+  `
+
+  if(cantidad < 0){
+    updateQuery += ` AND stock >= ABS($1)`;
+  }
+
+  updateQuery += ` RETURNING *`
 
   try {
-    const result = await pool.query(
-      "UPDATE articulos_escolares SET stock = stock + $1 WHERE id=$2 RETURNING *",
-      [quantity, id]
-    );
+    const result = await pool.query(updateQuery, [cantidad, id]);
 
-    if (result.rows.length === 0)
-      return res.status(404).json({ error: "Artículo no encontrado" });
+    if (result.rows.length === 0){
+      const errorMessage = cantidad < 0 ? "Stock insuficente" : "Libro no encontrado";
+      const errorCode = cantidad < 0 ? 409:404;
 
+      return res.status(errorCode).json({ error: errorMessage });
+    }
+    
     res.json(result.rows[0]);
   } catch (error) {
     console.error("updateItemStock error:", error);
