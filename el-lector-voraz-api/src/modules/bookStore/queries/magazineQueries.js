@@ -21,9 +21,9 @@ export const createMagazineQuery = `
 export const updateMagazineQuery = `
   UPDATE revistas SET
     nombre=$1, categoria=$2, precio=$3,
-    proveedor_id=$4, stock=$5, issn=$6,
-    edicion=$7, numero=$8
-  WHERE id=$9
+    proveedor_id=$4, issn=$5,
+    edicion=$6, numero=$7
+  WHERE id=$8
   RETURNING *
 `;
 
