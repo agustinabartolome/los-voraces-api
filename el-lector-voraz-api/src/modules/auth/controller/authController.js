@@ -32,8 +32,17 @@ export const registrar = async (req, res) => {
 
 export const perfil = async (req, res) => {
   try {
-    
-    res.json({ usuario: req.user });
+    const userId = req.user.id;
+
+    const result = await pool.query(
+      "SELECT username, rol_id, created_at FROM usuarios WHERE id=$1",
+      [userId])
+
+    if(result.rows.length === 0) {
+      return res.status(404).json({error: "Usuario no encontrado"})
+    }
+
+    res.json(result.rows[0]);
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Error al obtener perfil" });
@@ -46,9 +55,9 @@ export const login = async (req, res) => {
 
   try {
     const usuario = await pool.query(
-      `SELECT usuarios.*, roles.nombre AS rol
-       FROM usuarios 
-       JOIN roles ON roles.id = usuarios.rol_id
+      `SELECT u.id, u.username, u.password, r.nombre AS rol
+       FROM usuarios u
+       JOIN roles r ON r.id = u.rol_id
        WHERE username = $1`,
       [username]
     );
@@ -74,7 +83,7 @@ export const login = async (req, res) => {
       { expiresIn: "1h" }
     );
 
-    res.json({ message: "Login exitoso", token, user: { id: user.id } });
+    res.json({ token });
 
   } catch (error) {
     console.error(error);

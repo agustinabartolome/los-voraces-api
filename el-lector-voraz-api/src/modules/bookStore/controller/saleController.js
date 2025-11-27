@@ -134,7 +134,12 @@ export const getSaleDetailsById = async (req, res) => {
 }
 
 export const createSale = async (req, res) => {
-  const { usuario_id, total, detalle } = req.body;
+  const usuario_id = req.user.id
+  const { total, detalle } = req.body;
+
+  if(!detalle || !total || detalle.length === 0){
+    return res.status(400).json({ errro: "Faltan datos para crear la venta" })
+  }
 
   const client = await pool.connect()
 

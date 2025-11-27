@@ -6,6 +6,6 @@ const router = Router();
 
 router.post("/register", registrar);
 router.post("/login", login);
-// router.get("/perfil", authMiddleware, perfil);
+router.get("/perfil", authMiddleware, perfil);
 
 export default router;
