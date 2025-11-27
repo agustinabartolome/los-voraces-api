@@ -119,13 +119,13 @@ export const updateBook = async (req, res) => {
     const {
       titulo, isbn, precio, autor,
       editorial, genero, seccion,
-      proveedor_id, stock
+      proveedor_id
     } = req.body;
 
     const result = await db.query(updateBookQuery, [
       titulo, isbn, precio, autor,
       editorial, genero, seccion,
-      proveedor_id, stock, id
+      proveedor_id, id
     ]);
 
     if (result.rows.length === 0)
@@ -158,13 +158,33 @@ export const deleteBook = async (req, res) => {
 
 export const updateBookStock = async (req, res) => {
   const { id } = req.params;
-  const { quantity } = req.body;
+  const { cantidad } = req.body;
+
+  if(typeof cantidad != 'number') {
+    return res.status(400).json({error: "La cantidad debe ser un numero"})
+  }
+
+  let updateQuery = `
+    UPDATE libros
+    SET stock = stock + $1
+    WHERE id = $2
+  `
+
+  if(cantidad < 0){
+    updateQuery += ` AND stock >= ABS($1)`;
+  }
+
+  updateQuery += ` RETURNING *`
 
   try {
-    const result = await db.query(updateBookStockQuery, [quantity, id]);
+    const result = await db.query(updateQuery, [cantidad, id]);
 
-    if (result.rows.length === 0)
-      return res.status(404).json({ error: "Libro no encontrado" });
+    if (result.rows.length === 0) {
+      const errorMessage = cantidad < 0 ? "Stock insuficente" : "Libro no encontrado";
+      const errorCode = cantidad < 0 ? 409:404;
+
+      return res.status(errorCode).json({ error: errorMessage });
+    }
 
     res.json(result.rows[0]);
   } catch (err) {
