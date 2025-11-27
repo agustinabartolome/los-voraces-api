@@ -3,6 +3,7 @@ import {
     getAllMagazinesQuery,
     createMagazineQuery,
     updateMagazineQuery,
+    updateMagazineStockQuery,
     deleteMagazineQuery
 } from "../queries/magazineQueries.js";
 
@@ -128,10 +129,10 @@ export const createMagazine = async (req, res) => {
 export const updateMagazine = async (req, res) => {
   try {
     const { id } = req.params;
-    const { nombre, categoria, precio, proveedor_id, stock, issn, edicion, numero } = req.body;
+    const { nombre, categoria, precio, proveedor_id, issn, edicion, numero } = req.body;
 
     const result = await pool.query(updateMagazineQuery, [
-      nombre, categoria, precio, proveedor_id, stock, issn, edicion, numero, id
+      nombre, categoria, precio, proveedor_id, issn, edicion, numero, id
     ]);
 
     if (result.rows.length === 0)
@@ -162,13 +163,33 @@ export const deleteMagazine = async (req, res) => {
 
 export const updateMagazineStock = async (req, res) => {
   const { id } = req.params;
-  const { quantity } = req.body;
+  const { cantidad } = req.body;
+
+  if (typeof cantidad != 'number') {
+    return res.status(400).json({error: "La cantidad debe ser un numero"})
+  }
+
+    let updateQuery = `
+    UPDATE revistas
+    SET stock = stock + $1
+    WHERE id = $2
+  `
+
+    if(cantidad < 0){
+    updateQuery += ` AND stock >= ABS($1)`;
+  }
+
+  updateQuery += ` RETURNING *`
 
   try {
-    const result = await db.query(updateMagazineStockQuery, [quantity, id]);
+    const result = await pool.query(updateQuery, [cantidad, id]);
 
-    if (result.rows.length === 0)
-      return res.status(404).json({ error: "Revista no encontrada" });
+    if (result.rows.length === 0) {
+      const errorMessage = cantidad < 0 ? "Stock insuficente" : "Libro no encontrado";
+      const errorCode = cantidad < 0 ? 409:404;
+
+      return res.status(errorCode).json({ error: errorMessage });
+    }
 
     res.json(result.rows[0]);
   } catch (err) {
